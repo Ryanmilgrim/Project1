@@ -16,8 +16,6 @@ from Project1.data import DataCollector
 df = pd.read_csv('Project1/ticker_data.csv', index_col=0)
 data = DataCollector(df.index, date(2020, 1, 1), date(2023, 1, 1))
 
-# %%
-
 
 class BmOptimizer:
     """Functional Class to estimate a benchmark portfolio given granular assets."""
