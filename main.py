@@ -53,5 +53,5 @@ class BmOptimizer:
 
 if __name__ == '__main__':
 
-    bm = BmOptimizer('IVV', data.returns)
-    # print(bm.estimate_bm())
+    optimizer = BmOptimizer('IVV', data.returns)
+    # print(optimizer.estimate_bm())
