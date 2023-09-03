@@ -10,7 +10,7 @@ import cvxpy as cvx
 from datetime import date
 
 
-from data import DataCollector
+from Project1.data import DataCollector
 
 
 class BmOptimizer:
