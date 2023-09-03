@@ -35,5 +35,5 @@ class DataCollector:
 
 if __name__ == '__main__':
     from datetime import date
-    data = DataCollector(
-        ['GOOG', 'AAPL', 'META', 'AMZN'], date(2000, 1, 1), date(2023, 1, 1))
+    tickers = pd.read_csv('Project1/ticker_data.csv').Ticker
+    data = DataCollector(tickers, date(2000, 1, 1), date(2023, 1, 1))
