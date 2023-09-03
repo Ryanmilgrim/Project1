@@ -12,6 +12,9 @@ from datetime import date
 
 from Project1.data import DataCollector
 
+tickers = pd.read_csv('Project1/ticker_data.csv').Ticker
+data = DataCollector(tickers, date(2020, 1, 1), date(2023, 1, 1))
+
 
 class BmOptimizer:
     """Functional Class to estimate a benchmark portfolio given granular assets."""
@@ -49,14 +52,6 @@ class BmOptimizer:
 
 
 if __name__ == '__main__':
-    # Setup chunk
-    df = pd.read_csv('ticker_data.csv', index_col=0)
-    start = date(2010, 1, 1)
-    end = date(2023, 1, 1)
-
-    data = DataCollector(df.index, start, end)
-    bm = BmOptimizer('IVV', data.returns)
-    bench_2 = bm.estimate_bm()
 
     bm = BmOptimizer('IVV', data.returns)
-    bench = bm.estimate_bm()
+    # print(bm.estimate_bm())
