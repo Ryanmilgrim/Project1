@@ -8,6 +8,7 @@ Created on Sun Sep  3 14:42:37 2023
 import pandas as pd
 import cvxpy as cvx
 from datetime import date
+
 from Project1.data import DataCollector
 
 
