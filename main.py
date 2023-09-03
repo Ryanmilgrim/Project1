@@ -10,53 +10,50 @@ import cvxpy as cvx
 from datetime import date
 
 
-from data import DataCollector
+from Project1.data import DataCollector
+
+
+df = pd.read_csv('Project1/ticker_data.csv', index_col=0)
+data = DataCollector(df.index, date(2020, 1, 1), date(2023, 1, 1))
+
+# %%
 
 
 class BmOptimizer:
     """Functional Class to estimate a benchmark portfolio given granular assets."""
 
     def __init__(self, benchmark, returns):
-        self.benchmark = benchmark
-        self.returns = returns
+        # Parsing useful data from input variables.
+        n_periods, n_assets = returns.shape
+        self.bm_asset = returns.columns.isin(benchmark.index)
 
-    def get_idx(self):
-        """Return the index values of the benchmark and assets."""
-        n = len(self.returns.columns)
-        bm_idx = self.returns.columns.get_loc(self.benchmark)
-        asset_idx = np.arange(n)[np.arange(n) != 1]
-        return bm_idx, asset_idx, n
+        # Setting up the portfolio Variable, Cov Parameter, and Constant BM Vector.
+        self.portfolio = cvx.Variable(n_assets)
+        self.returns = cvx.Parameter(returns.shape)
 
-    def estimate_bm(self):
-        """Returns estimate benchmark portfolio."""
-        bm_idx, asset_idx, n = self.get_idx()
-
-        portfolio = cvx.Variable(n, nonneg=True)
-        benchmark = cvx.Variable(n, nonneg=True)
-
-        constraints = [
-            sum(portfolio) == 1,
-            portfolio <= 1,
-            portfolio[bm_idx] == 0,
-            benchmark[asset_idx] == 0,
-            benchmark[bm_idx] == 1
+        # Defining optimization objectives and constraints.
+        self.objective = cvx.sum_squares(self.portfolio @ self.returns.T)
+        self.constraints = [
+            self.portfolio <= 1,  # No Weights greater than 100%.
+            self.portfolio[self.bm_asset] == -1,  # Benchmark assets are not investable.
+            self.portfolio[~self.bm_asset] >= 0,  # Benchmark assets are not investable.
+            sum(self.portfolio) == 0  # Portfolio must be fully allocated.
         ]
 
-        objective = cvx.quad_form(portfolio - benchmark, self.returns.cov())
+        # Assigning the parameterized optimization.
+        self.problem = cvx.Problem(cvx.Minimize(self.objective), self.constraints)
 
-        cvx.Problem(cvx.Minimize(objective), constraints).solve()
-        return pd.Series(portfolio.value, index=self.returns.columns)
+    def estimate_bm(self, returns):
+        """Returns estimate benchmark portfolio."""
+        self.returns.value = returns.to_numpy()
+        self.problem.solve()
+        result = pd.Series(self.portfolio.value, index=returns.columns).clip(0, 1)
+        result[self.bm_asset] = 0
+        return result
 
 
 if __name__ == '__main__':
-    # Setup chunk
-    df = pd.read_csv('ticker_data.csv', index_col=0)
-    start = date(2010, 1, 1)
-    end = date(2023, 1, 1)
 
-    data = DataCollector(df.index, start, end)
-    bm = BmOptimizer('IVV', data.returns)
-    bench_2 = bm.estimate_bm()
-
-    bm = BmOptimizer('IVV', data.returns)
-    bench = bm.estimate_bm()
+    benchmark = pd.Series({'IVV': 1.0})
+    optimizer = BmOptimizer(benchmark, data.returns)
+    print(optimizer.estimate_bm(data.returns))
